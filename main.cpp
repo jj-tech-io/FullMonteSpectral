@@ -334,17 +334,48 @@ void worker() {
 }
 int main() {
     double step_size = 5;
-    int numSamples = 25;
+    int numSamples = 21;
     //Cm = [0.002, 0.0135, 0.0425, 0.1, 0.185, 0.32, 0.5]
     //Ch = [0.003, 0.02, 0.07, 0.16, 0.32]
     //Bm = [0.01, 0.5, 1.0]
     //Bh = [0.75]
     //T = [0.25]
-    std::vector<double> CmValues = generateSequence(0.001, 0.75, numSamples, 3);
-    std::vector<double> ChValues = generateSequence(0.001, 0.5, numSamples, 4);
-    std::vector<double> BmValues = {0.5};
-    std::vector<double> BhValues = {0.75};
-    std::vector<double> TValues {0.25};
+
+    std::vector<double> CmValues = generateSequence(0, 0.5, numSamples, 3);
+    std::vector<double> ChValues = generateSequence(0.001, 0.1, numSamples, 4);
+    std::vector<double> BmValues = generateSequence(0, 1.0, 5, 1);
+    std::vector<double> BhValues = { 0.75 };
+    std::vector<double> TValues = { 0.25 };
+
+    for (auto each : CmValues) {
+        std::cout << each;
+	}
+    //end
+    std::cout << std::endl;
+    for (auto each : ChValues) {
+        std::cout << each;
+
+    }
+    std::cout << std::endl;
+
+    for (auto each : BmValues) {
+        std::cout << each;
+    }
+    std::cout << std::endl;
+
+    for (auto each : BhValues) {
+        std::cout << each;
+	}
+    std::cout << std::endl;
+
+    for (auto each : TValues) {
+        std::cout << each;
+    }
+    std::cout << std::endl;
+
+    //std::vector<double> BmValues = {0.5};
+    //std::vector<double> BhValues = {0.75};
+    //std::vector<double> TValues {0.25};
     ////append values to vectors
     //CmValues.insert(CmValues.end(), CmValues2.begin(), CmValues2.end());
     std::cout << "size of cartesian product: " << CmValues.size() * ChValues.size() * BmValues.size() * BhValues.size() * TValues.size() << std::endl;
