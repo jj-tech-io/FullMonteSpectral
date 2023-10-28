@@ -1,0 +1,11 @@
+﻿  main.cpp
+C:\joel_cpp\FullMonte\FullMonte\main.cpp(29,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\joel_cpp\FullMonte\FullMonte\main.cpp(204,30): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  my_functions.cpp
+C:\joel_cpp\FullMonte\FullMonte\my_functions.cpp(182,11): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+C:\joel_cpp\FullMonte\FullMonte\my_functions.cpp(184,13): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+  TestColors.cpp.cpp
+  Generating Code...
+my_functions.obj : error LNK2005: "class std::vector<struct std::pair<int,double>,class std::allocator<struct std::pair<int,double> > > deoxy_hb_2" (?deoxy_hb_2@@3V?$vector@U?$pair@HN@std@@V?$allocator@U?$pair@HN@std@@@2@@std@@A) already defined in main.obj
+my_functions.obj : error LNK2005: "class std::vector<struct std::pair<int,double>,class std::allocator<struct std::pair<int,double> > > oxy_hb_2" (?oxy_hb_2@@3V?$vector@U?$pair@HN@std@@V?$allocator@U?$pair@HN@std@@@2@@std@@A) already defined in main.obj
+C:\joel_cpp\FullMonte\x64\Debug\FullMonte.exe : fatal error LNK1169: one or more multiply defined symbols found
