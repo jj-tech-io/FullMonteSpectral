@@ -212,7 +212,7 @@ std::vector<double> getWavelengths(double a, double b, double s, bool print_resu
 std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh, double T) {
     // 380 to 780
     int step_size = 5;
-    std::vector<double> wavelengths = getWavelengths(380, 780, step_size, false);
+    std::vector<double> wavelengths = { 400.00, 413.33, 426.67, 440.00, 453.33, 466.67, 480.00, 493.33, 506.67, 520.00, 533.33, 546.67, 560.00, 573.33, 586.67, 600.00, 613.33, 626.67, 640.00, 653.33, 666.67, 680.00, 693.33, 706.67, 720.00, 733.33, 746.67, 760.00, 773.33, 786.67, 800.00 };
 
     std::vector<double> reflectances(wavelengths.size());
     std::vector<double> row;
@@ -224,7 +224,7 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
     //total
     std::vector<double> total = { 0.0, 0.0, 0.0 };
     int index = 0;
-    for (int nm : wavelengths) {
+    for (double nm : wavelengths) {
         double alpha_base = 0.0244 + 8.53 * std::exp(-(nm - 154) / 66.2);
         double alpha_em = 6.6 * std::pow(10, 10) * std::pow(nm, -3.33);
         double alpha_pm = 2.9 * std::pow(10, 14) * std::pow(nm, -4.75);
@@ -340,7 +340,8 @@ int main() {
     //Bm = [0.01, 0.5, 1.0]
     //Bh = [0.75]
     //T = [0.25]
-
+    double wl[] = { 400.00, 413.33, 426.67, 440.00, 453.33, 466.67, 480.00, 493.33, 506.67, 520.00, 533.33, 546.67, 560.00, 573.33, 586.67, 600.00, 613.33, 626.67, 640.00, 653.33, 666.67, 680.00, 693.33, 706.67, 720.00, 733.33, 746.67, 760.00, 773.33, 786.67, 800.00 };
+    
     std::vector<double> CmValues = generateSequence(0, 0.5, numSamples, 3);
     std::vector<double> ChValues = generateSequence(0.001, 0.1, numSamples, 4);
     std::vector<double> BmValues = generateSequence(0, 1.0, 5, 1);
