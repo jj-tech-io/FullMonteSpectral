@@ -348,31 +348,6 @@ int main() {
     std::vector<double> BhValues = { 0.75 };
     std::vector<double> TValues = { 0.25 };
 
-    for (auto each : CmValues) {
-        std::cout << each;
-	}
-    //end
-    std::cout << std::endl;
-    for (auto each : ChValues) {
-        std::cout << each;
-
-    }
-    std::cout << std::endl;
-
-    for (auto each : BmValues) {
-        std::cout << each;
-    }
-    std::cout << std::endl;
-
-    for (auto each : BhValues) {
-        std::cout << each;
-	}
-    std::cout << std::endl;
-
-    for (auto each : TValues) {
-        std::cout << each;
-    }
-    std::cout << std::endl;
 
     //std::vector<double> BmValues = {0.5};
     //std::vector<double> BhValues = {0.75};

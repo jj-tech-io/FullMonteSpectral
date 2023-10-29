@@ -211,8 +211,8 @@ void WriteHeaderToCSV(std::ofstream& file) {
 
     // Assuming step_size is known here, for example 5. Modify as needed.
     double step_size = 5.0;
-    std::vector<double> wavelengths = getWavelengthList(380, 780, step_size, false);
-
+    //std::vector<double> wavelengths = getWavelengthList(380, 780, step_size, false);
+    std::vector<double> wavelengths = { 400.00, 413.33, 426.67, 440.00, 453.33, 466.67, 480.00, 493.33, 506.67, 520.00, 533.33, 546.67, 560.00, 573.33, 586.67, 600.00, 613.33, 626.67, 640.00, 653.33, 666.67, 680.00, 693.33, 706.67, 720.00, 733.33, 746.67, 760.00, 773.33, 786.67, 800.00 };
     // Convert wavelengths to strings and join with commas
     std::ostringstream oss;
     for (size_t i = 0; i < wavelengths.size(); ++i) {
