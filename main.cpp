@@ -210,10 +210,8 @@ std::vector<double> getWavelengths(double a, double b, double s, bool print_resu
 }
 
 std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh, double T) {
-    // 380 to 780
-    int step_size = 5;
-    std::vector<double> wavelengths = { 400.00, 413.33, 426.67, 440.00, 453.33, 466.67, 480.00, 493.33, 506.67, 520.00, 533.33, 546.67, 560.00, 573.33, 586.67, 600.00, 613.33, 626.67, 640.00, 653.33, 666.67, 680.00, 693.33, 706.67, 720.00, 733.33, 746.67, 760.00, 773.33, 786.67, 800.00 };
-
+    // 400 to 1000nm in 10nm steps
+    int step_size = 10;
     std::vector<double> reflectances(wavelengths.size());
     std::vector<double> row;
     row.push_back(Cm);
@@ -244,10 +242,10 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         //double dermis2 = Ch * (Bh * gammaOxy + (1 - Bh) * gemmaDeoxy) + (1 - Ch) * alpha_base;
         //double dermis = Ch * (A + (1 - Ch) * alpha_base);
         double scattering_epidermis = 14.74 * std::pow(nm, -0.22) + 2.22 * std::pow(10, 11) * std::pow(nm, -4.0);
-        double scattering_dermis = 0.75 * scattering_epidermis;
+        double scattering_dermis = 0.5 * scattering_epidermis;
         // Call MonteCarlo function here and store reflectance values
         double reflectance = MonteCarlo(epidermis, scattering_epidermis, dermis, scattering_dermis, T);
-        wavelengths[index] = nm;
+
         reflectances[index] = reflectance;
         row.push_back(reflectance);
         double x =  xFit_1931(nm);
@@ -264,7 +262,7 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
     }
 
     std::vector<double> sRGB0 = XYZ_to_sRGB(total, step_size);
-    std::vector<double> sRGB1 = Get_RGB(wavelengths, reflectances, step_size);
+    std::vector<double> sRGB1 = Get_RGB(reflectances, step_size);
     std::vector<double> sRGB2 = XYZ_to_sRGB(total, step_size);
 
 
@@ -333,21 +331,35 @@ void worker() {
     }
 }
 int main() {
-    double step_size = 5;
-    int numSamples = 21;
+    double step_size = 10;
+    int numSamples = 11;
     //Cm = [0.002, 0.0135, 0.0425, 0.1, 0.185, 0.32, 0.5]
     //Ch = [0.003, 0.02, 0.07, 0.16, 0.32]
     //Bm = [0.01, 0.5, 1.0]
     //Bh = [0.75]
     //T = [0.25]
-    double wl[] = { 400.00, 413.33, 426.67, 440.00, 453.33, 466.67, 480.00, 493.33, 506.67, 520.00, 533.33, 546.67, 560.00, 573.33, 586.67, 600.00, 613.33, 626.67, 640.00, 653.33, 666.67, 680.00, 693.33, 706.67, 720.00, 733.33, 746.67, 760.00, 773.33, 786.67, 800.00 };
     
-    std::vector<double> CmValues = generateSequence(0, 0.5, numSamples, 3);
-    std::vector<double> ChValues = generateSequence(0.001, 0.1, numSamples, 4);
-    std::vector<double> BmValues = generateSequence(0, 1.0, 5, 1);
-    std::vector<double> BhValues = { 0.75 };
-    std::vector<double> TValues = { 0.25 };
+    std::vector<double> CmValues = generateSequence(0.001, 0.5*1.5, numSamples, 3);
+    std::vector<double> ChValues = generateSequence(0.001, 0.32*1.5, numSamples, 4);
+    std::vector<double> BmValues = generateSequence(0.00, 1.0, numSamples, 1);
+    //std::vector<double> BhValues = generateSequence(0.00, 1.0, numSamples, 1);
+    std::vector<double> BhValues = { 0.6, 0.65, 0.7, 0.75, 0.8,0.85, 0.9 };
+    //std::vector<double> BhValues = { 0.75 };
 
+    std::vector<double> TValues =  generateSequence(0.10,0.25, numSamples, 1);
+    //std::vector<double> TValues = { 0.1, 0.15, 0.2, 0.25 };
+    //std::vector<double> TValues = { 0.25 };
+    //print values
+    std::cout << "Cm: ";
+    for (double val : CmValues) {
+		std::cout << val << ", ";
+	}
+    std::cout << std::endl;
+    std::cout << "Ch: ";
+    for (double val : ChValues) {
+        std::cout << val << ", ";
+    }
+    std::cout << std::endl;
 
     //std::vector<double> BmValues = {0.5};
     //std::vector<double> BhValues = {0.75};
@@ -355,8 +367,8 @@ int main() {
     ////append values to vectors
     //CmValues.insert(CmValues.end(), CmValues2.begin(), CmValues2.end());
     std::cout << "size of cartesian product: " << CmValues.size() * ChValues.size() * BmValues.size() * BhValues.size() * TValues.size() << std::endl;
-    std::string outputFilename = "output_spectral.csv";
-    std::ofstream outputFile(outputFilename);
+    std::string outputFilename = "fixed_bh_spectral.csv";
+    std::ofstream outputFile(outputFilename, std::ios::out);
 
     //start timer
     auto start = std::chrono::high_resolution_clock::now();
@@ -364,7 +376,8 @@ int main() {
 
     WriteHeaderToCSV(outputFile);
 
-    const int numThreads = std::thread::hardware_concurrency();
+    const int numThreads = std::thread::hardware_concurrency()/2;
+
     if (numThreads == 0) {
 		std::cout << "Unable to detect number of threads. Defaulting to 4." << std::endl;
 	}

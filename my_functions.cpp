@@ -2,7 +2,7 @@
 //math
 #pragma once
 #include "my_functions.h"
-
+#include <algorithm>
 
 double getDeoxyHbValue(int wavelength)
 {
@@ -145,7 +145,7 @@ std::vector<double> XYZ_to_sRGB(std::vector<double> xyz, int step_size) {
     return sRGB;
 }
 
-std::vector<double> Get_RGB(std::vector<double> wavelengths, std::vector<double> reflectances, int step_size) {
+std::vector<double> Get_RGB(std::vector<double> reflectances, int step_size) {
     std::vector<double> total = { 0.0, 0.0, 0.0 };
     int index = 0;
     std::vector<double> sRGB = { 0.0, 0.0, 0.0 };
@@ -212,7 +212,6 @@ void WriteHeaderToCSV(std::ofstream& file) {
     // Assuming step_size is known here, for example 5. Modify as needed.
     double step_size = 5.0;
     //std::vector<double> wavelengths = getWavelengthList(380, 780, step_size, false);
-    std::vector<double> wavelengths = { 400.00, 413.33, 426.67, 440.00, 453.33, 466.67, 480.00, 493.33, 506.67, 520.00, 533.33, 546.67, 560.00, 573.33, 586.67, 600.00, 613.33, 626.67, 640.00, 653.33, 666.67, 680.00, 693.33, 706.67, 720.00, 733.33, 746.67, 760.00, 773.33, 786.67, 800.00 };
     // Convert wavelengths to strings and join with commas
     std::ostringstream oss;
     for (size_t i = 0; i < wavelengths.size(); ++i) {
@@ -245,7 +244,8 @@ std::pair<double, double> calculate_absorption_coefficient(double wavelength) {
     }
 
     // If no match found, calculate using raw coefficients
-    int i = std::lower_bound(wavelengths, wavelengths + sizeof(wavelengths) / sizeof(wavelengths[0]), wavelength) - wavelengths;
+    auto it = std::lower_bound(wavelengths.begin(), wavelengths.end(), wavelength);
+    int i = it - wavelengths.begin();
     if (i == 0) {
         i = 1.0;
     }
