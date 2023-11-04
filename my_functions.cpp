@@ -207,10 +207,10 @@ std::vector<double> getWavelengthList(double start, double end, double step_size
 
 void WriteHeaderToCSV(std::ofstream& file) {
     // Cm,Ch,Bm,Bh,T,sR,sG,sB
-    file << "Cm,Ch,Bm,Bh,T,";
+    file << "Cm,Ch,Bm,Bh,T,sR,sG,sB";
 
     // Assuming step_size is known here, for example 5. Modify as needed.
-    double step_size = 5.0;
+    double step_size = 10;
     //std::vector<double> wavelengths = getWavelengthList(380, 780, step_size, false);
     // Convert wavelengths to strings and join with commas
     std::ostringstream oss;
@@ -223,8 +223,6 @@ void WriteHeaderToCSV(std::ofstream& file) {
         }
     }
 
-    // Append R,G,B columns
-    oss << ",sR,sG,sB";
 
     // Append to file
     file << oss.str() << std::endl; // Finish the line

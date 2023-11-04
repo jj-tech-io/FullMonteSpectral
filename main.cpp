@@ -209,7 +209,7 @@ std::vector<double> getWavelengths(double a, double b, double s, bool print_resu
     return result;
 }
 
-std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh, double T) {
+std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh,  double T) {
     // 400 to 1000nm in 10nm steps
     int step_size = 10;
     std::vector<double> reflectances(wavelengths.size());
@@ -230,15 +230,15 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         // double alpha_oxy = oxy_hb[index].second;
         // double alpha_deoxy = deoxy_hb[index].second;
         auto coefficients = calculate_absorption_coefficient(nm);
-        double gammaOxy = coefficients.first;
-        double gammaDeoxy = coefficients.second;
+        double alpha_oxy = coefficients.first;
+        double alpha_deoxy = coefficients.second;
         //double A = Bh*gammaOxy + (1 - Bh)*gammaDeoxy;
 
         int wl = static_cast<int>(nm);
         //using 
         double epidermis = Cm * (Bm * alpha_em + (1 - Bm) * alpha_pm) + (1 - Cm) * alpha_base;
         //alpha_derm_total = Ch*(Bh*alpha_oxy + (1-Bh)*alpha_deoxy) + (1-Ch)*self.get_alpha_base(wl)
-        double dermis = Ch *(Bh*gammaOxy + (1 - Bh)*gammaDeoxy) + (1 - Ch)*alpha_base;
+        double dermis = Ch *(0.75*alpha_oxy + (0.25)*alpha_deoxy) + (1 - Ch)*alpha_base;
         //double dermis2 = Ch * (Bh * gammaOxy + (1 - Bh) * gemmaDeoxy) + (1 - Ch) * alpha_base;
         //double dermis = Ch * (A + (1 - Ch) * alpha_base);
         double scattering_epidermis = 14.74 * std::pow(nm, -0.22) + 2.22 * std::pow(10, 11) * std::pow(nm, -4.0);
@@ -258,24 +258,17 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         total[2] += z*reflectance;
         index++;
         //std::cout << "Total: " << total[0] << ", " << total[1] << ", " << total[2] << std::endl;
-
     }
 
     std::vector<double> sRGB0 = XYZ_to_sRGB(total, step_size);
-    std::vector<double> sRGB1 = Get_RGB(reflectances, step_size);
-    std::vector<double> sRGB2 = XYZ_to_sRGB(total, step_size);
+    //std::vector<double> sRGB1 = Get_RGB(reflectances, step_size);
+    //std::vector<double> sRGB2 = XYZ_to_sRGB(total, step_size);
 
-
-    row.push_back(sRGB1[0]);
-    row.push_back(sRGB1[1]);
-    row.push_back(sRGB1[2]);
-
-    // row.insert(row.end(), sRGB.begin(), sRGB.end());
+    row.insert(row.end(), sRGB0.begin(), sRGB0.end());
     //free up memory
     total.clear();
     sRGB0.clear();
-    sRGB1.clear();
-    sRGB2.clear();
+
     return row;
 }
 std::vector<double> generateSequence(double start, double end, int numSamples, double root) {
@@ -302,8 +295,8 @@ std::queue<std::function<void()>> tasks;
 
 bool finished = false;
 
-void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm, double bh, double t) {
-    std::vector<double> row = CalculateReflectanceRow(cm, ch, bm, bh, t);
+void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm,double bh, double t) {
+    std::vector<double> row = CalculateReflectanceRow(cm, ch, bm,bh, t);
     mtx.lock();
     WriteRowToCSV(outputFile, row);
     //std::cout << "cm: " << cm << ", ch: " << ch << ", bm: " << bm << ", bh: " << bh << ", t: " << t << " \n" << std::endl;
@@ -332,21 +325,21 @@ void worker() {
 }
 int main() {
     double step_size = 10;
-    int numSamples = 11;
+    int numSamples = 7;
     //Cm = [0.002, 0.0135, 0.0425, 0.1, 0.185, 0.32, 0.5]
     //Ch = [0.003, 0.02, 0.07, 0.16, 0.32]
     //Bm = [0.01, 0.5, 1.0]
     //Bh = [0.75]
     //T = [0.25]
     
-    std::vector<double> CmValues = generateSequence(0.001, 0.5*1.5, numSamples, 3);
-    std::vector<double> ChValues = generateSequence(0.001, 0.32*1.5, numSamples, 4);
+    std::vector<double> CmValues = generateSequence(0.00, 1.0, numSamples, 3);
+    std::vector<double> ChValues = generateSequence(0.00, 1.0, numSamples, 4);
     std::vector<double> BmValues = generateSequence(0.00, 1.0, numSamples, 1);
     //std::vector<double> BhValues = generateSequence(0.00, 1.0, numSamples, 1);
-    std::vector<double> BhValues = { 0.6, 0.65, 0.7, 0.75, 0.8,0.85, 0.9 };
+    std::vector<double> BhValues = generateSequence(0.0,1.0,numSamples,1 );
     //std::vector<double> BhValues = { 0.75 };
 
-    std::vector<double> TValues =  generateSequence(0.10,0.25, numSamples, 1);
+    std::vector<double> TValues =  generateSequence(0.01,0.25, numSamples, 1);
     //std::vector<double> TValues = { 0.1, 0.15, 0.2, 0.25 };
     //std::vector<double> TValues = { 0.25 };
     //print values
@@ -367,7 +360,7 @@ int main() {
     ////append values to vectors
     //CmValues.insert(CmValues.end(), CmValues2.begin(), CmValues2.end());
     std::cout << "size of cartesian product: " << CmValues.size() * ChValues.size() * BmValues.size() * BhValues.size() * TValues.size() << std::endl;
-    std::string outputFilename = "fixed_bh_spectral.csv";
+    std::string outputFilename = "spectral_lut.csv";
     std::ofstream outputFile(outputFilename, std::ios::out);
 
     //start timer
@@ -396,7 +389,7 @@ int main() {
                 for (auto bh : BhValues) {
                     for (auto t : TValues) {
                         auto task = [&, cm, ch, bm, bh, t]() {
-                            ProcessAndWrite(outputFile, cm, ch, bm, bh, t);
+                            ProcessAndWrite(outputFile, cm, ch, bm,bh, t);
                         };
 
                         {
