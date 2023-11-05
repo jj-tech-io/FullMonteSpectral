@@ -214,11 +214,6 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
     int step_size = 10;
     std::vector<double> reflectances(wavelengths.size());
     std::vector<double> row;
-    row.push_back(Cm);
-    row.push_back(Ch);
-    row.push_back(Bm);
-    row.push_back(Bh);
-    row.push_back(T);
     //total
     std::vector<double> total = { 0.0, 0.0, 0.0 };
     int index = 0;
@@ -247,7 +242,7 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         double reflectance = MonteCarlo(epidermis, scattering_epidermis, dermis, scattering_dermis, T);
 
         reflectances[index] = reflectance;
-        row.push_back(reflectance);
+        
         double x =  xFit_1931(nm);
         double y =  yFit_1931(nm);
         double z =  zFit_1931(nm);
@@ -260,15 +255,20 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         //std::cout << "Total: " << total[0] << ", " << total[1] << ", " << total[2] << std::endl;
     }
 
-    std::vector<double> sRGB0 = XYZ_to_sRGB(total, step_size);
-    //std::vector<double> sRGB1 = Get_RGB(reflectances, step_size);
-    //std::vector<double> sRGB2 = XYZ_to_sRGB(total, step_size);
+    std::vector<double> sRGB = XYZ_to_sRGB(total, step_size);
+    if (sRGB[0] <= 255.0 && sRGB[1] <= 255.0 && sRGB[2] <= 255.0) {
+        row.push_back(Cm);
+        row.push_back(Ch);
+        row.push_back(Bm);
+        row.push_back(Bh);
+        row.push_back(T);
+        row.insert(row.begin() + 5, sRGB.begin(), sRGB.end());
+        row.insert(row.end(), reflectances.begin(), reflectances.end());
+	}
 
-    row.insert(row.end(), sRGB0.begin(), sRGB0.end());
     //free up memory
     total.clear();
-    sRGB0.clear();
-
+    sRGB.clear();
     return row;
 }
 std::vector<double> generateSequence(double start, double end, int numSamples, double root) {
@@ -297,6 +297,9 @@ bool finished = false;
 
 void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm,double bh, double t) {
     std::vector<double> row = CalculateReflectanceRow(cm, ch, bm,bh, t);
+    if (row.empty()) {
+		return;
+	}
     mtx.lock();
     WriteRowToCSV(outputFile, row);
     //std::cout << "cm: " << cm << ", ch: " << ch << ", bm: " << bm << ", bh: " << bh << ", t: " << t << " \n" << std::endl;
@@ -325,7 +328,7 @@ void worker() {
 }
 int main() {
     double step_size = 10;
-    int numSamples = 7;
+    int numSamples = 9;
     //Cm = [0.002, 0.0135, 0.0425, 0.1, 0.185, 0.32, 0.5]
     //Ch = [0.003, 0.02, 0.07, 0.16, 0.32]
     //Bm = [0.01, 0.5, 1.0]

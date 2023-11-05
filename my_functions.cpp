@@ -171,22 +171,6 @@ std::vector<double> Get_RGB(std::vector<double> reflectances, int step_size) {
     return sRGB;
 }
 
-//void write_csv(const std::string filename, const std::vector<std::vector<double>>& data) {
-//    std::ofstream myFile(filename);
-//    // Write headers
-//    myFile << "Cm,Ch,Bm,Bh,T,R,G,B\n";
-//    //loop through data and print all rows
-//    for (size_t i = 0; i < data.size(); i++) {
-//        for (size_t j = 0; j < data[i].size(); j++) {
-//            myFile << data[i][j];
-//            if (j != data[i].size() - 1) {
-//                myFile << ",";
-//            }
-//        }
-//        myFile << "\n";
-//    }
-//    myFile.close();
-//}
 void WriteRowToCSV(std::ofstream& file, const std::vector<double>& row) {
     for (size_t i = 0; i < row.size(); ++i) {
         file << row[i];
@@ -207,7 +191,7 @@ std::vector<double> getWavelengthList(double start, double end, double step_size
 
 void WriteHeaderToCSV(std::ofstream& file) {
     // Cm,Ch,Bm,Bh,T,sR,sG,sB
-    file << "Cm,Ch,Bm,Bh,T,sR,sG,sB";
+    file << "Cm,Ch,Bm,Bh,T,sR,sG,sB,";
 
     // Assuming step_size is known here, for example 5. Modify as needed.
     double step_size = 10;
