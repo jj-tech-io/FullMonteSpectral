@@ -1,0 +1,70 @@
+﻿  main.cpp
+C:\joel_cpp\FullMonte_Spectral\FullMonte\main.cpp(32,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\joel_cpp\FullMonte_Spectral\FullMonte\main.cpp(194,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\joel_cpp\FullMonte_Spectral\FullMonte\main.cpp(384,23): warning C4018: '<': signed/unsigned mismatch
+  my_functions.cpp
+C:\joel_cpp\FullMonte_Spectral\FullMonte\my_functions.cpp(232,13): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\utility(263,16): warning C4244: 'initializing': conversion from 'const _Ty1' to '_Ty1', possible loss of data
+          with
+          [
+              _Ty1=double
+          ]
+          and
+          [
+              _Ty1=const int
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xmemory(719,103): message : see reference to function template instantiation 'std::pair<const int,double>::pair<double,double,0>(const std::pair<double,double> &) noexcept' being compiled
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xtree(807,25): message : see reference to function template instantiation 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,const _Elem&>(_Alloc &,_Objty *const ,const _Elem &)' being compiled
+          with
+          [
+              _Alloc=std::allocator<std::_Tree_node<std::pair<const int,double>,std::_Default_allocator_traits<std::allocator<std::pair<const int,double>>>::void_pointer>>,
+              _Ty=std::pair<const int,double>,
+              _Elem=std::pair<double,double>,
+              _Objty=std::pair<const int,double>
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xtree(1054,46): message : see reference to function template instantiation 'std::_Tree_temp_node<std::allocator<std::_Tree_node<std::pair<const int,double>,std::_Default_allocator_traits<_Alloc>::void_pointer>>>::_Tree_temp_node<const _Elem&>(_Alnode &,std::_Tree_node<std::pair<const int,double>,std::_Default_allocator_traits<_Alloc>::void_pointer> *,const _Elem &)' being compiled
+          with
+          [
+              _Alloc=std::allocator<std::pair<const int,double>>,
+              _Elem=std::pair<double,double>,
+              _Alnode=std::allocator<std::_Tree_node<std::pair<const int,double>,std::_Default_allocator_traits<std::allocator<std::pair<const int,double>>>::void_pointer>>
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xtree(1261,13): message : see reference to function template instantiation 'std::_Tree_node<std::pair<const int,double>,std::_Default_allocator_traits<_Alloc>::void_pointer> *std::_Tree<std::_Tmap_traits<_Kty,_Ty,_Pr,_Alloc,false>>::_Emplace_hint<const std::pair<double,double>&>(std::_Tree_node<std::pair<const int,double>,std::_Default_allocator_traits<_Alloc>::void_pointer> *const ,const std::pair<double,double> &)' being compiled
+          with
+          [
+              _Alloc=std::allocator<std::pair<const int,double>>,
+              _Kty=int,
+              _Ty=double,
+              _Pr=std::less<int>
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\xtree(1269,9): message : see reference to function template instantiation 'void std::_Tree<std::_Tmap_traits<_Kty,_Ty,_Pr,_Alloc,false>>::_Insert_range_unchecked<const std::pair<double,double>*,const std::pair<double,double>*>(_Iter,const _Sent)' being compiled
+          with
+          [
+              _Kty=int,
+              _Ty=double,
+              _Pr=std::less<int>,
+              _Alloc=std::allocator<std::pair<const int,double>>,
+              _Iter=const std::pair<double,double> *,
+              _Sent=const std::pair<double,double> *
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.37.32822\include\map(121,9): message : see reference to function template instantiation 'void std::_Tree<std::_Tmap_traits<_Kty,_Ty,_Pr,_Alloc,false>>::insert<_Iter>(_Iter,_Iter)' being compiled
+          with
+          [
+              _Kty=int,
+              _Ty=double,
+              _Pr=std::less<int>,
+              _Alloc=std::allocator<std::pair<const int,double>>,
+              _Iter=std::_Vector_const_iterator<std::_Vector_val<std::_Simple_types<std::pair<double,double>>>>
+          ]
+C:\joel_cpp\FullMonte_Spectral\FullMonte\my_functions.cpp(10,39): message : see reference to function template instantiation 'std::map<int,double,std::less<int>,std::allocator<std::pair<const int,double>>>::map<std::_Vector_const_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>>(_Iter,_Iter)' being compiled
+          with
+          [
+              _Ty=std::pair<double,double>,
+              _Iter=std::_Vector_const_iterator<std::_Vector_val<std::_Simple_types<std::pair<double,double>>>>
+          ]
+C:\joel_cpp\FullMonte_Spectral\FullMonte\my_functions.cpp(10,39): message : see the first reference to 'std::map<int,double,std::less<int>,std::allocator<std::pair<const int,double>>>::map' in 'getDeoxyHbValue'
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 853 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  FullMonte.vcxproj -> C:\joel_cpp\FullMonte_Spectral\Release\FullMonteSpectral.exe

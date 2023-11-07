@@ -16,8 +16,8 @@
 #define nt 1.33
 
 
-double MonteCarlo(double epi_mua, double epi_mus, double derm_mua, double derm_mus, double epidermis_thickness) {
-    int Nphotons = 1000;
+double MonteCarlo(double epi_mua, double epi_mus, double derm_mua, double derm_mus, double epidermis_thickness, int Nphotons = 1000) {
+
     //double ReflBin[Nbinsp1];
 
     double epi_albedo = epi_mus / (epi_mus + epi_mua);
@@ -209,7 +209,7 @@ std::vector<double> getWavelengths(double a, double b, double s, bool print_resu
     return result;
 }
 
-std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh,  double T) {
+std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh,  double T, int Nphotons = 1000) {
     // 400 to 1000nm in 10nm steps
     int step_size = 10;
     std::vector<double> reflectances(wavelengths.size());
@@ -239,7 +239,7 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         double scattering_epidermis = 14.74 * std::pow(nm, -0.22) + 2.22 * std::pow(10, 11) * std::pow(nm, -4.0);
         double scattering_dermis = 0.5 * scattering_epidermis;
         // Call MonteCarlo function here and store reflectance values
-        double reflectance = MonteCarlo(epidermis, scattering_epidermis, dermis, scattering_dermis, T);
+        double reflectance = MonteCarlo(epidermis, scattering_epidermis, dermis, scattering_dermis, T, Nphotons);
 
         reflectances[index] = reflectance;
         
@@ -295,16 +295,16 @@ std::queue<std::function<void()>> tasks;
 
 bool finished = false;
 
-void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm,double bh, double t) {
-    std::vector<double> row = CalculateReflectanceRow(cm, ch, bm,bh, t);
-    if (row.empty()) {
-		return;
-	}
+void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm,double bh, double t, int Nphotons = 1000) {
+    std::vector<double> row = CalculateReflectanceRow(cm, ch, bm,bh, t, Nphotons);
+ //   if (row.empty()) {
+	//	return;
+	//}
     mtx.lock();
     WriteRowToCSV(outputFile, row);
-    //std::cout << "cm: " << cm << ", ch: " << ch << ", bm: " << bm << ", bh: " << bh << ", t: " << t << " \n" << std::endl;
     mtx.unlock();
     row.clear();
+
 
 }
 void worker() {
@@ -327,44 +327,38 @@ void worker() {
     }
 }
 int main() {
+    //clear all 
     double step_size = 10;
-    int numSamples = 9;
-    //Cm = [0.002, 0.0135, 0.0425, 0.1, 0.185, 0.32, 0.5]
-    //Ch = [0.003, 0.02, 0.07, 0.16, 0.32]
-    //Bm = [0.01, 0.5, 1.0]
-    //Bh = [0.75]
-    //T = [0.25]
-    
-    std::vector<double> CmValues = generateSequence(0.00, 1.0, numSamples, 3);
-    std::vector<double> ChValues = generateSequence(0.00, 1.0, numSamples, 4);
-    std::vector<double> BmValues = generateSequence(0.00, 1.0, numSamples, 1);
-    //std::vector<double> BhValues = generateSequence(0.00, 1.0, numSamples, 1);
-    std::vector<double> BhValues = generateSequence(0.0,1.0,numSamples,1 );
-    //std::vector<double> BhValues = { 0.75 };
+    int numSamples = 1;
+    //std::vector<double> CmValues = generateSequence(0.00, 0.62, numSamples, 3);
+    //std::vector<double> ChValues = generateSequence(0.00, 0.32, numSamples, 4);
+    //std::vector<double> BmValues = generateSequence(0.00, 1.0, numSamples, 1);
+    //std::vector<double> BhValues = generateSequence(0.0,1.0,numSamples,1 );
+    //std::vector<double> TValues =  generateSequence(0.01,0.25, numSamples, 1);
+    std::vector<double> CmValues = { 0.2 };
+    std::vector<double> ChValues = { 0.1 };
+    std::vector<double> BmValues = { 0.5 };
+    std::vector<double> BhValues = { 0.75 };
+    std::vector<double> TValues = { 0.15 };
 
-    std::vector<double> TValues =  generateSequence(0.01,0.25, numSamples, 1);
-    //std::vector<double> TValues = { 0.1, 0.15, 0.2, 0.25 };
-    //std::vector<double> TValues = { 0.25 };
-    //print values
-    std::cout << "Cm: ";
-    for (double val : CmValues) {
-		std::cout << val << ", ";
-	}
-    std::cout << std::endl;
-    std::cout << "Ch: ";
-    for (double val : ChValues) {
-        std::cout << val << ", ";
-    }
+
+    //   for (double val : CmValues) {
+       //	std::cout << val << ", ";
+       //}
+    //   std::cout << std::endl;
+    //   std::cout << "Ch: ";
+    //   for (double val : ChValues) {
+    //       std::cout << val << ", ";
+    //   }
     std::cout << std::endl;
 
-    //std::vector<double> BmValues = {0.5};
-    //std::vector<double> BhValues = {0.75};
-    //std::vector<double> TValues {0.25};
-    ////append values to vectors
-    //CmValues.insert(CmValues.end(), CmValues2.begin(), CmValues2.end());
     std::cout << "size of cartesian product: " << CmValues.size() * ChValues.size() * BmValues.size() * BhValues.size() * TValues.size() << std::endl;
-    std::string outputFilename = "spectral_lut.csv";
-    std::ofstream outputFile(outputFilename, std::ios::out);
+    //array of number of photons = [1000o to 1000000] in powers of 10
+    std::vector<int> Nphotons = { 10000};
+    //array of csv file names = [converge_1000.csv, converge_10000.csv, converge_100000.csv]
+    //std::vector<std::string> csvFileNames = { "converge_1000.csv", "converge_1500.csv", "converge_10000.csv", "converge_15000.csv", "converge_100000.csv" };
+    std::string csvFileNames = "convergenge2.csv";
+    std::ofstream outputFile(csvFileNames, std::ios::out);
 
     //start timer
     auto start = std::chrono::high_resolution_clock::now();
@@ -374,43 +368,49 @@ int main() {
 
     const int numThreads = std::thread::hardware_concurrency()/2;
 
+
     if (numThreads == 0) {
-		std::cout << "Unable to detect number of threads. Defaulting to 4." << std::endl;
-	}
+        std::cout << "Unable to detect number of threads. Defaulting to 4." << std::endl;
+    }
     else {
-		std::cout << "Detected " << numThreads << " threads." << std::endl;
-	}
+        std::cout << "Detected " << numThreads << " threads." << std::endl;
+    }
     std::vector<std::thread> workers;
 
     for (int i = 0; i < numThreads; i++) {
         workers.push_back(std::thread(worker));
     }
+    for (int i = 0; i < Nphotons.size(); i++) {
+        std::cout << "Nphotons: " << Nphotons[i] << std::endl;
+        for (auto cm : CmValues) {
+            for (auto ch : ChValues) {
+                for (auto bm : BmValues) {
+                    for (auto bh : BhValues) {
+                        for (auto t : TValues) {
+                            auto task = [&, cm, ch, bm, bh, t]() {
+                                ProcessAndWrite(outputFile, cm, ch, bm, bh, t, Nphotons[i]);
+                                };
+                            //add a delay to allow the queue to fill up
+                            /*std::this_thread::sleep_for(std::chrono::milliseconds(100));*/
 
-    for (auto cm : CmValues) {
-        for (auto ch : ChValues) {
-            for (auto bm : BmValues) {
-                for (auto bh : BhValues) {
-                    for (auto t : TValues) {
-                        auto task = [&, cm, ch, bm, bh, t]() {
-                            ProcessAndWrite(outputFile, cm, ch, bm,bh, t);
-                        };
-
-                        {
-                            std::unique_lock<std::mutex> lock(task_mtx);
-                            tasks.push(task);
-                            cv.notify_one();
+                            {
+                                std::unique_lock<std::mutex> lock(task_mtx);
+                                tasks.push(task);
+                                cv.notify_one();
+                            }
                         }
                     }
                 }
             }
         }
     }
-
-    {
-        std::unique_lock<std::mutex> lock(task_mtx);
-        finished = true;
-        cv.notify_all();
+    {    
+    std::unique_lock<std::mutex> lock(task_mtx);
+    finished = true;
+    cv.notify_all(); 
     }
+
+        
 
     for (auto& worker : workers) {
         worker.join();
@@ -420,7 +420,13 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "elapsed time: " << elapsed.count() << " seconds" << std::endl;
-
+    //clear CmValues, ChValues, BmValues, BhValues, TValues, Nphotons
+    CmValues.clear();
+    ChValues.clear();
+    BmValues.clear();
+    BhValues.clear();
+    TValues.clear();
+    Nphotons.clear();
 
     return 0;
 }
