@@ -16,8 +16,8 @@
 #define nt 1.33
 
 
-double MonteCarlo(double epi_mua, double epi_mus, double derm_mua, double derm_mus, double epidermis_thickness, int Nphotons = 1000) {
-
+double MonteCarlo(double epi_mua, double epi_mus, double derm_mua, double derm_mus, double epidermis_thickness) {
+    int Nphotons = 250000;
     //double ReflBin[Nbinsp1];
 
     double epi_albedo = epi_mus / (epi_mus + epi_mua);
@@ -173,7 +173,7 @@ double MonteCarlo(double epi_mua, double epi_mus, double derm_mua, double derm_m
     for (int i = 0; i < Nbinsp1; i++) {
         if (ReflBin[i] > max)
         {
-            max = ReflBin[i]/Nphotons;
+            max = ReflBin[i] / Nphotons;
         }
         // std::cout << "ReflBin[" << each << "] = " << ReflBin[each] << std::endl;
         total_reflection += ReflBin[i] / Nphotons;
@@ -181,9 +181,9 @@ double MonteCarlo(double epi_mua, double epi_mus, double derm_mua, double derm_m
     }
     if (total_reflection > 1.0)
     {
-	    	std :: cout << "total_reflection: " << total_reflection << std::endl;
-            std::cout << "max: " << max << std::endl;
-	}
+        std::cout << "total_reflection: " << total_reflection << std::endl;
+        std::cout << "max: " << max << std::endl;
+    }
 
     return total_reflection;
 }
@@ -209,7 +209,7 @@ std::vector<double> getWavelengths(double a, double b, double s, bool print_resu
     return result;
 }
 
-std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh,  double T, int Nphotons = 1000) {
+std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, double Bh, double T) {
     // 400 to 1000nm in 10nm steps
     int step_size = 10;
     std::vector<double> reflectances(wavelengths.size());
@@ -233,31 +233,30 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         //using 
         double epidermis = Cm * (Bm * alpha_em + (1 - Bm) * alpha_pm) + (1 - Cm) * alpha_base;
         //alpha_derm_total = Ch*(Bh*alpha_oxy + (1-Bh)*alpha_deoxy) + (1-Ch)*self.get_alpha_base(wl)
-        double dermis = Ch *(0.75*alpha_oxy + (0.25)*alpha_deoxy) + (1 - Ch)*alpha_base;
+        double dermis = Ch * (0.75 * alpha_oxy + (0.25) * alpha_deoxy) + (1 - Ch) * alpha_base;
         //double dermis2 = Ch * (Bh * gammaOxy + (1 - Bh) * gemmaDeoxy) + (1 - Ch) * alpha_base;
         //double dermis = Ch * (A + (1 - Ch) * alpha_base);
         double scattering_epidermis = 14.74 * std::pow(nm, -0.22) + 2.22 * std::pow(10, 11) * std::pow(nm, -4.0);
         double scattering_dermis = 0.5 * scattering_epidermis;
         // Call MonteCarlo function here and store reflectance values
-        double reflectance = MonteCarlo(epidermis, scattering_epidermis, dermis, scattering_dermis, T, Nphotons);
+        double reflectance = MonteCarlo(epidermis, scattering_epidermis, dermis, scattering_dermis, T);
 
         reflectances[index] = reflectance;
-        
-        double x =  xFit_1931(nm);
-        double y =  yFit_1931(nm);
-        double z =  zFit_1931(nm);
-        double XYZ [3] = {x, y, z};
 
-        total[0] += x*reflectance;
-        total[1] += y*reflectance;
-        total[2] += z*reflectance;
+        double x = xFit_1931(nm);
+        double y = yFit_1931(nm);
+        double z = zFit_1931(nm);
+        double XYZ[3] = { x, y, z };
+
+        total[0] += x * reflectance;
+        total[1] += y * reflectance;
+        total[2] += z * reflectance;
         index++;
         //std::cout << "Total: " << total[0] << ", " << total[1] << ", " << total[2] << std::endl;
     }
 
     std::vector<double> sRGB = XYZ_to_sRGB(total, step_size);
     if (sRGB[0] <= 255.0 && sRGB[1] <= 255.0 && sRGB[2] <= 255.0) {
-        row.push_back(Nphotons);
         row.push_back(Cm);
         row.push_back(Ch);
         row.push_back(Bm);
@@ -265,7 +264,7 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
         row.push_back(T);
         row.insert(row.begin() + 5, sRGB.begin(), sRGB.end());
         row.insert(row.end(), reflectances.begin(), reflectances.end());
-	}
+    }
 
     //free up memory
     total.clear();
@@ -296,17 +295,16 @@ std::queue<std::function<void()>> tasks;
 
 bool finished = false;
 
-void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm,double bh, double t, int Nphotons = 1000) {
-    std::vector<double> row = CalculateReflectanceRow(cm, ch, bm,bh, t, Nphotons);
+void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm, double bh, double t) {
+    std::vector<double> row = CalculateReflectanceRow(cm, ch, bm, bh, t);
     if (row.empty()) {
-            std::cout << "row is empty" << std::endl;
-		    return;
-	    }
-    //mtx.lock();
+        return;
+    }
+    mtx.lock();
     WriteRowToCSV(outputFile, row);
-    //mtx.unlock();
+    //std::cout << "cm: " << cm << ", ch: " << ch << ", bm: " << bm << ", bh: " << bh << ", t: " << t << " \n" << std::endl;
+    mtx.unlock();
     row.clear();
-
 
 }
 void worker() {
@@ -329,39 +327,44 @@ void worker() {
     }
 }
 int main() {
-    //clear all 
     double step_size = 10;
-    int numSamples = 1;
-    //std::vector<double> CmValues = generateSequence(0.00, 0.62, numSamples, 3);
-    //std::vector<double> ChValues = generateSequence(0.00, 0.32, numSamples, 4);
-    //std::vector<double> BmValues = generateSequence(0.00, 1.0, numSamples, 1);
-    //std::vector<double> BhValues = generateSequence(0.0,1.0,numSamples,1 );
-    //std::vector<double> TValues =  generateSequence(0.01,0.25, numSamples, 1);
-    std::vector<double> CmValues = { 0.2 };
-    std::vector<double> ChValues = { 0.1 };
-    std::vector<double> BmValues = { 0.5 };
-    std::vector<double> BhValues = { 0.75 };
-    std::vector<double> TValues = { 0.15 };
+    int numSamples = 5;
+    //Cm = [0.002, 0.0135, 0.0425, 0.1, 0.185, 0.32, 0.5]
+    //Ch = [0.003, 0.02, 0.07, 0.16, 0.32]
+    //Bm = [0.01, 0.5, 1.0]
+    //Bh = [0.75]
+    //T = [0.25]
 
+    std::vector<double> CmValues = generateSequence(0.00, 0.62, numSamples, 3);
+    std::vector<double> ChValues = generateSequence(0.00, 0.32, numSamples, 4);
+    std::vector<double> BmValues = generateSequence(0.00, 1.0, numSamples, 1);
+    //std::vector<double> BhValues = generateSequence(0.00, 1.0, numSamples, 1);
+    std::vector<double> BhValues = generateSequence(0.0, 1.0, numSamples, 1);
+    //std::vector<double> BhValues = { 0.75 };
 
-    //   for (double val : CmValues) {
-       //	std::cout << val << ", ";
-       //}
-    //   std::cout << std::endl;
-    //   std::cout << "Ch: ";
-    //   for (double val : ChValues) {
-    //       std::cout << val << ", ";
-    //   }
+    std::vector<double> TValues = generateSequence(0.01, 0.25, numSamples, 1);
+    //std::vector<double> TValues = { 0.1, 0.15, 0.2, 0.25 };
+    //std::vector<double> TValues = { 0.25 };
+    //print values
+    std::cout << "Cm: ";
+    for (double val : CmValues) {
+        std::cout << val << ", ";
+    }
+    std::cout << std::endl;
+    std::cout << "Ch: ";
+    for (double val : ChValues) {
+        std::cout << val << ", ";
+    }
     std::cout << std::endl;
 
+    //std::vector<double> BmValues = {0.5};
+    //std::vector<double> BhValues = {0.75};
+    //std::vector<double> TValues {0.25};
+    ////append values to vectors
+    //CmValues.insert(CmValues.end(), CmValues2.begin(), CmValues2.end());
     std::cout << "size of cartesian product: " << CmValues.size() * ChValues.size() * BmValues.size() * BhValues.size() * TValues.size() << std::endl;
-    //array of number of photons = [1000o to 1000000] in powers of 10
-    //std::vector<int> Nphotons = { 10000, 15000, 100000};
-    std::vector<int> Nphotons = { 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 210000, 220000, 230000, 240000, 250000, 260000, 270000, 280000, 290000, 300000, 310000, 320000, 330000, 340000, 350000, 360000, 370000, 380000, 390000, 400000, 410000, 420000, 430000, 440000, 450000, 460000, 470000, 480000, 490000, 500000, 510000, 520000, 530000, 540000, 550000, 560000, 570000, 580000, 590000, 600000, 610000, 620000, 630000, 640000, 650000, 660000, 670000, 680000, 690000, 700000, 710000, 720000, 730000, 740000, 750000, 760000, 770000, 780000, 790000, 800000, 810000, 820000, 830000, 840000, 850000, 860000, 870000, 880000, 890000, 900000, 910000, 920000, 930000, 940000, 950000, 960000, 970000, 980000, 990000, 1000000 };
-    //array of csv file names = [converge_1000.csv, converge_10000.csv, converge_100000.csv]
-    //std::vector<std::string> csvFileNames = { "converge_1000.csv", "converge_1500.csv", "converge_10000.csv", "converge_15000.csv", "converge_100000.csv" };
-    std::string csvFileNames = "convergenge.csv";
-    std::ofstream outputFile(csvFileNames, std::ios::out);
+    std::string outputFilename = "spectral_lut.csv";
+    std::ofstream outputFile(outputFilename, std::ios::out);
 
     //start timer
     auto start = std::chrono::high_resolution_clock::now();
@@ -369,8 +372,7 @@ int main() {
 
     WriteHeaderToCSV(outputFile);
 
-    const int numThreads = std::thread::hardware_concurrency();
-
+    const int numThreads = std::thread::hardware_concurrency() / 2;
 
     if (numThreads == 0) {
         std::cout << "Unable to detect number of threads. Defaulting to 4." << std::endl;
@@ -380,40 +382,35 @@ int main() {
     }
     std::vector<std::thread> workers;
 
-    //for (int i = 0; i < numThreads; i++) {
-    //    workers.push_back(std::thread(worker));
-    //}
-    for (int i = 0; i < Nphotons.size(); i++) {
-        for (auto cm : CmValues) {
-            for (auto ch : ChValues) {
-                for (auto bm : BmValues) {
-                    for (auto bh : BhValues) {
-                        for (auto t : TValues) {
-                            //auto task = [&, cm, ch, bm, bh, t]() {
-                                ProcessAndWrite(outputFile, cm, ch, bm, bh, t, Nphotons[i]);
-                                //};
-                            //add a delay to allow the queue to fill up
-                            /*std::this_thread::sleep_for(std::chrono::milliseconds(100));*/
+    for (int i = 0; i < numThreads; i++) {
+        workers.push_back(std::thread(worker));
+    }
 
-                            {
-                                std::unique_lock<std::mutex> lock(task_mtx);
-                                //tasks.push(task);
-                                //cv.notify_one();
-                            }
+    for (auto cm : CmValues) {
+        for (auto ch : ChValues) {
+            for (auto bm : BmValues) {
+                for (auto bh : BhValues) {
+                    for (auto t : TValues) {
+                        auto task = [&, cm, ch, bm, bh, t]() {
+                            ProcessAndWrite(outputFile, cm, ch, bm, bh, t);
+                            };
+
+                        {
+                            std::unique_lock<std::mutex> lock(task_mtx);
+                            tasks.push(task);
+                            cv.notify_one();
                         }
                     }
                 }
             }
         }
-        std::cout << "Nphotons: " << Nphotons[i] << std::endl;
     }
-    //{    
-    //std::unique_lock<std::mutex> lock(task_mtx);
-    //finished = true;
-    //cv.notify_all(); 
-    //}
 
-        
+    {
+        std::unique_lock<std::mutex> lock(task_mtx);
+        finished = true;
+        cv.notify_all();
+    }
 
     for (auto& worker : workers) {
         worker.join();
@@ -423,13 +420,7 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "elapsed time: " << elapsed.count() << " seconds" << std::endl;
-    //clear CmValues, ChValues, BmValues, BhValues, TValues, Nphotons
-    CmValues.clear();
-    ChValues.clear();
-    BmValues.clear();
-    BhValues.clear();
-    TValues.clear();
-    Nphotons.clear();
+
 
     return 0;
 }
