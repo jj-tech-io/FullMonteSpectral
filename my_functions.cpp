@@ -191,7 +191,7 @@ std::vector<double> getWavelengthList(double start, double end, double step_size
 
 void WriteHeaderToCSV(std::ofstream& file) {
     // Cm,Ch,Bm,Bh,T,sR,sG,sB
-    file << "Cm,Ch,Bm,Bh,T,sR,sG,sB,";
+    file << "Nphotons,Cm,Ch,Bm,Bh,T,sR,sG,sB,";
 
     // Assuming step_size is known here, for example 5. Modify as needed.
     double step_size = 10;

@@ -3,8 +3,8 @@
 C:\joel_cpp\FullMonte_Spectral\FullMonte\main.cpp(32,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
 C:\joel_cpp\FullMonte_Spectral\FullMonte\main.cpp(194,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Generating code
-  2 of 820 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+  278 of 686 functions (40.5%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    49 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   FullMonte.vcxproj -> C:\joel_cpp\FullMonte_Spectral\x64\Release\FullMonteSpectral.exe

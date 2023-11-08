@@ -257,6 +257,7 @@ std::vector<double> CalculateReflectanceRow(double Cm, double Ch, double Bm, dou
 
     std::vector<double> sRGB = XYZ_to_sRGB(total, step_size);
     if (sRGB[0] <= 255.0 && sRGB[1] <= 255.0 && sRGB[2] <= 255.0) {
+        row.push_back(Nphotons);
         row.push_back(Cm);
         row.push_back(Ch);
         row.push_back(Bm);
@@ -297,12 +298,13 @@ bool finished = false;
 
 void ProcessAndWrite(std::ofstream& outputFile, double cm, double ch, double bm,double bh, double t, int Nphotons = 1000) {
     std::vector<double> row = CalculateReflectanceRow(cm, ch, bm,bh, t, Nphotons);
- //   if (row.empty()) {
-	//	return;
-	//}
-    mtx.lock();
+    if (row.empty()) {
+            std::cout << "row is empty" << std::endl;
+		    return;
+	    }
+    //mtx.lock();
     WriteRowToCSV(outputFile, row);
-    mtx.unlock();
+    //mtx.unlock();
     row.clear();
 
 
@@ -354,10 +356,11 @@ int main() {
 
     std::cout << "size of cartesian product: " << CmValues.size() * ChValues.size() * BmValues.size() * BhValues.size() * TValues.size() << std::endl;
     //array of number of photons = [1000o to 1000000] in powers of 10
-    std::vector<int> Nphotons = { 10000};
+    //std::vector<int> Nphotons = { 10000, 15000, 100000};
+    std::vector<int> Nphotons = { 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 210000, 220000, 230000, 240000, 250000, 260000, 270000, 280000, 290000, 300000, 310000, 320000, 330000, 340000, 350000, 360000, 370000, 380000, 390000, 400000, 410000, 420000, 430000, 440000, 450000, 460000, 470000, 480000, 490000, 500000, 510000, 520000, 530000, 540000, 550000, 560000, 570000, 580000, 590000, 600000, 610000, 620000, 630000, 640000, 650000, 660000, 670000, 680000, 690000, 700000, 710000, 720000, 730000, 740000, 750000, 760000, 770000, 780000, 790000, 800000, 810000, 820000, 830000, 840000, 850000, 860000, 870000, 880000, 890000, 900000, 910000, 920000, 930000, 940000, 950000, 960000, 970000, 980000, 990000, 1000000 };
     //array of csv file names = [converge_1000.csv, converge_10000.csv, converge_100000.csv]
     //std::vector<std::string> csvFileNames = { "converge_1000.csv", "converge_1500.csv", "converge_10000.csv", "converge_15000.csv", "converge_100000.csv" };
-    std::string csvFileNames = "convergenge2.csv";
+    std::string csvFileNames = "convergenge.csv";
     std::ofstream outputFile(csvFileNames, std::ios::out);
 
     //start timer
@@ -366,7 +369,7 @@ int main() {
 
     WriteHeaderToCSV(outputFile);
 
-    const int numThreads = std::thread::hardware_concurrency()/2;
+    const int numThreads = std::thread::hardware_concurrency();
 
 
     if (numThreads == 0) {
@@ -377,38 +380,38 @@ int main() {
     }
     std::vector<std::thread> workers;
 
-    for (int i = 0; i < numThreads; i++) {
-        workers.push_back(std::thread(worker));
-    }
+    //for (int i = 0; i < numThreads; i++) {
+    //    workers.push_back(std::thread(worker));
+    //}
     for (int i = 0; i < Nphotons.size(); i++) {
-        std::cout << "Nphotons: " << Nphotons[i] << std::endl;
         for (auto cm : CmValues) {
             for (auto ch : ChValues) {
                 for (auto bm : BmValues) {
                     for (auto bh : BhValues) {
                         for (auto t : TValues) {
-                            auto task = [&, cm, ch, bm, bh, t]() {
+                            //auto task = [&, cm, ch, bm, bh, t]() {
                                 ProcessAndWrite(outputFile, cm, ch, bm, bh, t, Nphotons[i]);
-                                };
+                                //};
                             //add a delay to allow the queue to fill up
                             /*std::this_thread::sleep_for(std::chrono::milliseconds(100));*/
 
                             {
                                 std::unique_lock<std::mutex> lock(task_mtx);
-                                tasks.push(task);
-                                cv.notify_one();
+                                //tasks.push(task);
+                                //cv.notify_one();
                             }
                         }
                     }
                 }
             }
         }
+        std::cout << "Nphotons: " << Nphotons[i] << std::endl;
     }
-    {    
-    std::unique_lock<std::mutex> lock(task_mtx);
-    finished = true;
-    cv.notify_all(); 
-    }
+    //{    
+    //std::unique_lock<std::mutex> lock(task_mtx);
+    //finished = true;
+    //cv.notify_all(); 
+    //}
 
         
 
